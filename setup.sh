@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Install dependencies
-echo "Installing dependencies..."
-sudo apt-get update
-sudo apt-get install -y python3
+# echo "Installing dependencies..."
+# sudo apt-get update
+# sudo apt-get install -y python3
 
 # Create a symbolic link
 echo "Setting up wpt-mode..."
