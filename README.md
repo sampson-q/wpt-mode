@@ -2,20 +2,20 @@
 
 ![wpt-mode logo](logo.svg)
 
-This Python script simplifies switching between monitor mode and managed mode on a WiFi interface, allowing for efficient scanning and monitoring during penetration testing.
+This Python script simplifies switching between monitor mode and managed mode on a WiFi interface using granular Linux network controls (`ip`, `iw`, `nmcli`), removing reliance on the `aircrack-ng` suite.
 
 ## Features
 
-- **Start Monitor Mode**: Activate monitor mode on a specified WiFi interface (`airmon-ng check kill` and `airmon-ng start <interface>`).
-- **Exit Monitor Mode**: Deactivate monitor mode (`airmon-ng stop <interface>`) and restart NetworkManager (`service NetworkManager start`).
-- **Rescan WiFi Networks**: Automatically rescan WiFi networks after exiting monitor mode.
+- **Start Monitor Mode**: Activate monitor mode on a specified WiFi interface using granular controls (`ip link set <interface> down`, `iw dev <interface> set type monitor`, `ip link set <interface> up`).
+- **Exit Monitor Mode**: Deactivate monitor mode (`ip link set <interface> down`, `iw dev <interface> set type managed`, `ip link set <interface> up`) and restart NetworkManager.
+- **Rescan WiFi Networks**: Automatically exit monitor mode, scan for available WiFi networks via `nmcli`, and re-enable monitor mode.
 
 ## Requirements
 
 - Python 3.x
-- airmon-ng
-- NetworkManager
-- nmcli
+- iproute2 (`ip`)
+- iw (or wireless-tools)
+- NetworkManager & nmcli
 
 ## Installation
 
@@ -28,7 +28,7 @@ This Python script simplifies switching between monitor mode and managed mode on
 
 2. **Setup Script:**
 
-   Run the setup script (`setup.sh`) to install dependencies and make `wpt-mode` executable from anywhere:
+   Run the setup script (`setup.sh`) to verify dependencies and make `wpt-mode` executable from anywhere:
 
    ```bash
    chmod +x setup.sh
@@ -76,17 +76,21 @@ This Python script simplifies switching between monitor mode and managed mode on
 
 ## Case Study: Switching Between Monitor and Managed Modes
 
-Using `wpt-mode` simplifies the process of switching between monitor mode and managed mode on a WiFi interface during penetration testing. Here's how the tool improves efficiency:
+Using `wpt-mode` simplifies the process of switching between monitor mode and managed mode on a WiFi interface during penetration testing. Here's how the tool improves efficiency using granular network controls:
 
 1. **Starting Monitor Mode**:
-   - Executes `airmon-ng check kill` to kill any processes that might interfere.
-   - Executes `airmon-ng start <interface>` to activate monitor mode on the specified interface.
+   - Stops interfering background processes (such as NetworkManager and `wpa_supplicant`).
+   - Sets the interface down: `ip link set <interface> down`.
+   - Sets interface mode to monitor: `iw dev <interface> set type monitor`.
+   - Brings the interface back up: `ip link set <interface> up`.
 
 2. **Exiting Monitor Mode**:
-   - Executes `airmon-ng stop <interface>` to deactivate monitor mode.
-   - Restarts NetworkManager using `service NetworkManager start` to restore normal network functionality.
+   - Sets the interface down: `ip link set <interface> down`.
+   - Sets interface mode back to managed: `iw dev <interface> set type managed`.
+   - Brings the interface back up: `ip link set <interface> up`.
+   - Restarts NetworkManager (`systemctl restart NetworkManager`) to restore normal network connectivity.
 
 3. **Rescanning WiFi Networks**:
-   - After exiting monitor mode, automatically rescans WiFi networks using `nmcli device wifi list`.
+   - Automatically switches back to managed mode, pauses for the interface to initialize, rescans WiFi networks using `nmcli device wifi list`, and re-enables monitor mode.
 
-By automating these steps, `wpt-mode` reduces the time and effort required to switch modes and perform essential tasks during WiFi penetration testing.
+By automating these granular steps, `wpt-mode` provides clean mode switching without interface renaming or heavy third-party suite dependencies.
