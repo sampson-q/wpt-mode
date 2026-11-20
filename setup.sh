@@ -1,13 +1,24 @@
 #!/bin/bash
 
-# Install dependencies
-# echo "Installing dependencies..."
-# sudo apt-get update
-# sudo apt-get install -y python3
+# Ensure script runs with sudo if needed for creating the symlink
+if [ "$EUID" -ne 0 ]; then
+    SUDO="sudo"
+else
+    SUDO=""
+fi
+
+echo "Setting up wpt-mode..."
+
+# Check required dependencies
+echo "Checking dependencies..."
+for cmd in python3 ip iw nmcli; do
+    if ! command -v "$cmd" &> /dev/null; then
+        echo "[-] Warning: '$cmd' is not installed or not in PATH."
+    fi
+done
 
 # Create a symbolic link
-echo "Setting up wpt-mode..."
 chmod +x wpt-mode.py
-sudo ln -s "$(pwd)/wpt-mode.py" /usr/local/bin/wpt-mode
+$SUDO ln -sf "$(pwd)/wpt-mode.py" /usr/local/bin/wpt-mode
 
-echo "Setup complete! wpt-mode"
+echo "Setup complete! You can now run 'wpt-mode'."
